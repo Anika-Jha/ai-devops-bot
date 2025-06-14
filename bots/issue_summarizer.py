@@ -1,36 +1,36 @@
 import requests
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer
 from config import GITLAB_API_TOKEN, PROJECT_ID
+from langdetect import detect
 
-# Initialize the summarization pipeline once
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn", framework="pt")
+# Initialize summarizer and tokenizer
+MODEL_NAME = "facebook/bart-large-cnn"
+summarizer = pipeline("summarization", model=MODEL_NAME, framework="pt")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
 def get_issue_and_comments(issue_iid: int) -> str:
     """
-    Fetches the issue title, description, and all comments from GitLab.
+    Fetch issue title, description, and all comments from GitLab.
 
     Args:
-        issue_iid (int): The internal ID of the issue.
+        issue_iid (int): The internal ID of the GitLab issue.
 
     Returns:
-        str: Concatenated text of the issue title, description, and comments.
+        str: Combined text of title, description, and comments.
     """
     headers = {"PRIVATE-TOKEN": GITLAB_API_TOKEN}
     base_url = f"https://gitlab.com/api/v4/projects/{PROJECT_ID}/issues/{issue_iid}"
 
     try:
-        # Fetch issue details
         issue_res = requests.get(base_url, headers=headers)
         issue_res.raise_for_status()
         issue = issue_res.json()
 
-        # Fetch issue comments (notes)
         comments_url = f"{base_url}/notes"
         comments_res = requests.get(comments_url, headers=headers)
         comments_res.raise_for_status()
         comments = comments_res.json()
 
-        # Combine title, description, and comments
         full_text = f"{issue.get('title', '')}. {issue.get('description', '')}"
         for note in comments:
             full_text += f"\n{note.get('body', '')}"
@@ -38,46 +38,56 @@ def get_issue_and_comments(issue_iid: int) -> str:
         return full_text.strip()
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching issue data: {e}")
+        print(f"[ERROR] Failed to fetch issue/comments: {e}")
         return ""
 
-def summarize_text(text: str) -> str:
+def summarize_text(text: str, min_len: int = 30, max_len: int = 130) -> str:
     """
-    Summarizes the provided text using Hugging Face's Transformers pipeline.
+    Summarize provided text using Hugging Face summarization model.
 
     Args:
-        text (str): The text to be summarized.
+        text (str): Input text to summarize.
+        min_len (int): Minimum length of the summary.
+        max_len (int): Maximum length of the summary.
 
     Returns:
-        str: The summarized text.
+        str: Summarized version of the text.
     """
-    # Replace newlines with spaces for better summarization
-    text = text.replace("\n", " ")
-
-    # Hugging Face models have max token limits; truncate if too long
-    max_chunk = 1000
-    if len(text) > max_chunk:
-        text = text[:max_chunk]
+    if not text.strip():
+        return "❌ No content to summarize."
 
     try:
-        summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
-        return summary[0]['summary_text']
-    except Exception as e:
-        print(f"Error during summarization: {e}")
-        return "Summarization failed."
+        # Detect language
+        lang = detect(text)
+        if lang != "en":
+            return f"🌐 Detected language '{lang}' not supported yet."
 
-def summarize_issue(issue_iid: int) -> str:
+        text = text.replace("\n", " ").strip()
+
+        # Truncate using tokenizer token limit
+        input_ids = tokenizer.encode(text, truncation=True, max_length=1024)
+        truncated_text = tokenizer.decode(input_ids, skip_special_tokens=True)
+
+        summary = summarizer(truncated_text, max_length=max_len, min_length=min_len, do_sample=False)
+        return summary[0]["summary_text"]
+
+    except Exception as e:
+        print(f"[ERROR] Summarization failed: {e}")
+        return "⚠️ Summarization failed due to internal error."
+
+def summarize_issue(issue_iid: int, min_len: int = 30, max_len: int = 130) -> str:
     """
-    Wrapper that fetches issue data and returns its summary.
+    Main function to fetch issue and return summarized content.
 
     Args:
-        issue_iid (int): The internal ID of the issue.
+        issue_iid (int): GitLab issue internal ID.
+        min_len (int): Minimum length of the summary.
+        max_len (int): Maximum length of the summary.
 
     Returns:
-        str: Summarized issue content.
+        str: Final summarized text or error message.
     """
     text = get_issue_and_comments(issue_iid)
     if not text:
-        return "Failed to fetch issue or comments."
-    return summarize_text(text)
-
+        return "❌ Could not fetch issue data from GitLab."
+    return summarize_text(text, min_len=min_len, max_len=max_len)
