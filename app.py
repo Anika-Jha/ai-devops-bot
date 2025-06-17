@@ -33,18 +33,23 @@ with tab1:
 
 # ========== TAB 2: TEST GENERATOR ==========
 with tab2:
-    st.subheader("Generate Unit Test Template")
+    st.subheader("🧪 Generate Unit Test Template")
 
     code_input = st.text_area("Paste a Python function here:", height=200)
 
     if st.button("Generate Tests"):
         if code_input.strip():
-            test_stub = generate_tests(code_input)
-            st.success("✅ Test Stub:")
-            st.code(test_stub, language='python')
+            try:
+                test_stub = generate_tests(code_input)
+                if test_stub:
+                    st.success("✅ Test Template Generated:")
+                    st.code(test_stub, language='python')
+                else:
+                    st.warning("No valid functions found in the input.")
+            except Exception as e:
+                st.error(f"❌ Error generating tests: {e}")
         else:
-            st.warning("Please paste a Python function to generate tests.")
-
+            st.warning("⚠️ Please paste a Python function to generate tests.")
 
 # ========== TAB 3: CODE REVIEW ==========
 with tab3:
@@ -66,4 +71,3 @@ with tab3:
             st.text(result)
     else:
         st.markdown("⚠️ Please upload a `.py` file to perform code review.")
-# currently reviewing python code files
