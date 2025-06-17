@@ -76,7 +76,6 @@ namex==0.0.8
 narwhals==1.35.0
 networkx==3.5
 nltk==3.9.1
-numpy==1.26.4
 oauthlib==3.2.2
 openai==0.28.0
 opencv-contrib-python==4.10.0.84
@@ -132,13 +131,6 @@ starlette==0.46.2
 streamlit==1.31.0
 sumy==0.11.0
 sympy==1.14.0
-tenacity==8.5.0
-tensorboard==2.18.0
-tensorboard-data-server==0.7.2
-tensorflow==2.18.0
-termcolor==2.5.0
-threadpoolctl==3.5.0
-tokenizers==0.21.1
 toml==0.10.2
 tomlkit==0.13.3
 torch==2.7.1
