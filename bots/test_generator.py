@@ -10,7 +10,7 @@ def generate_tests(source_code):
             func_name = node.name
             tests += textwrap.dedent(f"""
             def test_{func_name}():
-                # TODO: Replace with real test
+                
                 result = {func_name}(*args)
                 assert result == expected
             """)
