@@ -30,7 +30,6 @@ Built to streamline and accelerate software development workflows, this project 
 
 The app is developed using Python and deployed as an interactive web application using [Streamlit](https://streamlit.io/).
 
-Absolutely! Here's a section you can add under **Deployment** or as a separate **CI/CD & Cloud Usage** section explaining your GitLab and Google Cloud usage clearly and transparently:
 
 ---
 
@@ -56,7 +55,7 @@ This approach balanced demonstrating cloud compatibility and keeping the deploym
 
 ---
 
-If you want, I can help you integrate this neatly into your full README!
+
 
 
 ---
