@@ -1,8 +1,10 @@
+#imports
 import streamlit as st
 from bots.issue_summarizer import summarize_issue
 from bots.test_generator import generate_tests
 from bots.code_reviewer import review_code
 
+#landing page
 st.set_page_config(page_title="AI DevOps Bot", layout="centered")
 
 st.title("🤖 AI DevOps Assistant")
@@ -42,14 +44,14 @@ with tab2:
             try:
                 test_stub = generate_tests(code_input)
                 if test_stub:
-                    st.success("✅ Test Template Generated:")
+                    st.success(" Test Template Generated:")
                     st.code(test_stub, language='python')
                 else:
                     st.warning("No valid functions found in the input.")
             except Exception as e:
-                st.error(f"❌ Error generating tests: {e}")
+                st.error(f" Error generating tests: {e}")
         else:
-            st.warning("⚠️ Please paste a Python function to generate tests.")
+            st.warning(" Please paste a Python function to generate tests.")
 
 # ========== TAB 3: CODE REVIEW ==========
 with tab3:
@@ -67,7 +69,7 @@ with tab3:
         if st.button("Review Code"):
             st.info("Running code review using pylint...")
             result = review_code("temp_uploaded.py")
-            st.success("🔍 Review Result:")
+            st.success(" Review Result:")
             st.text(result)
     else:
-        st.markdown("⚠️ Please upload a `.py` file to perform code review.")
+        st.markdown(" Please upload a `.py` file to perform code review.")
